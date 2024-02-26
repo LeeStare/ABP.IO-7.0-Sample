@@ -37,6 +37,8 @@ using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.UI;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.VirtualFileSystem;
+using System;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 
 namespace Sample.Web;
 
@@ -85,7 +87,7 @@ public class SampleWebModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
-        // 嚙稽嚙緩Cors嚙瘤嚙踝蕭
+        // 設定Cors政策
         context.Services.AddCors(cors => cors.AddPolicy("default", policy =>
         {
             if (hostingEnvironment.IsDevelopment() || hostingEnvironment.EnvironmentName.Equals("HamaDevelpment"))
@@ -105,6 +107,9 @@ public class SampleWebModule : AbpModule
                    AllowAnyMethod();
             }
         }));
+        // 驗證：防偽驗證
+        ConfigureAntiForgery();
+        // 驗證：JWT驗證機制
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
         ConfigureBundles();
@@ -113,6 +118,33 @@ public class SampleWebModule : AbpModule
         ConfigureNavigationServices();
         ConfigureAutoApiControllers();
         ConfigureSwaggerServices(context.Services);
+    }
+
+    #region 各種服務註冊
+
+    /// <summary>
+    /// 驗證：防偽驗證
+    /// </summary>
+    private void ConfigureAntiForgery()
+    {
+        /*context.Services.AddAntiforgery(options =>
+        {
+        });*/
+        Configure<AbpAntiForgeryOptions>(options =>
+        {
+            //options.TokenCookie.Expiration = TimeSpan.FromDays(365);
+            options.AutoValidate = false;
+            /*options.AutoValidateIgnoredHttpMethods.Add("GET");
+            options.AutoValidateIgnoredHttpMethods.Add("POST");
+            options.TokenCookie.Expiration = TimeSpan.FromDays(365);
+            // 防偽請求名稱
+            options.AuthCookieSchemaName = "Requestverificationtoken";
+            // 防偽請求名稱Cookie名稱
+            options.TokenCookie.Name = "XSRF-TOKEN";
+            // Cookie的安全策略
+            options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.TokenCookie.HttpOnly = false;*/
+        });
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
@@ -192,6 +224,8 @@ public class SampleWebModule : AbpModule
             }
         );
     }
+
+    #endregion
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
