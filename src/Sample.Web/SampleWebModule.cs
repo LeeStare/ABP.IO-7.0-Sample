@@ -85,6 +85,26 @@ public class SampleWebModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
+        // �]�wCors�F��
+        context.Services.AddCors(cors => cors.AddPolicy("default", policy =>
+        {
+            if (hostingEnvironment.IsDevelopment() || hostingEnvironment.EnvironmentName.Equals("HamaDevelpment"))
+            {
+                policy.
+                   AllowAnyOrigin().
+                   AllowAnyHeader().
+                   AllowAnyMethod();
+            }
+            else
+            {
+                var setUrl = configuration.GetSection("App").GetValue<string>("SelfUrl") ?? string.Empty;
+                policy.
+                   WithOrigins(setUrl,
+                     "http://localhost:4200", "https://localhost:44315", (configuration["App:RedirectUrl"] ?? "https://tpfishdev.hamastar.com.tw/")).
+                   AllowAnyHeader().
+                   AllowAnyMethod();
+            }
+        }));
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
         ConfigureBundles();
