@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -10,8 +13,13 @@ namespace Sample.Web;
 
 public class Program
 {
+    // 設定config位址
+    private static string? env = "Development";
+
     public async static Task<int> Main(string[] args)
     {
+        SetEnvironment();
+
         Log.Logger = new LoggerConfiguration()
 #if DEBUG
             .MinimumLevel.Debug()
@@ -29,7 +37,17 @@ public class Program
         {
             Log.Information("Starting web host.");
             var builder = WebApplication.CreateBuilder(args);
-            builder.Host.AddAppSettingsSecretsJson()
+            builder.WebHost.ConfigureKestrel((context, options) =>
+            {
+                // 設定應用伺服器Kestrel請求體 最大值 不限制(避免IIS預設設定)
+                options.Limits.MaxRequestBodySize = null;
+            });
+            builder.Host.ConfigureAppConfiguration(builder =>
+                {
+                    builder.AddJsonFile("appsettings.json");
+                    builder.AddJsonFile($"appsettings.{env}.json", optional: true);
+                })
+                .AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog();
             await builder.AddApplicationAsync<SampleWebModule>();
@@ -51,6 +69,32 @@ public class Program
         finally
         {
             Log.CloseAndFlush();
+        }
+    }
+
+    /// <summary>
+    /// 設定config位址函式
+    /// </summary>
+    private static void SetEnvironment()
+    {
+        try
+        {
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", false)
+                .Build();
+            env = config.GetSection("Environment").Value;
+
+            // 未抓取到json
+            if (env == null) throw new FileNotFoundException(message: "Environment Not Found.");
+        }
+        catch (FileNotFoundException ex)
+        {
+            Console.WriteLine(ex.Message);
+            env = "Develoment";
+        }
+        catch (Exception)
+        {
+            env = "Develoment";
         }
     }
 }
