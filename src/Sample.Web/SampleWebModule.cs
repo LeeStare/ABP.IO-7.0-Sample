@@ -40,6 +40,7 @@ using Volo.Abp.VirtualFileSystem;
 using System;
 using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Sample.Web;
 
@@ -129,6 +130,9 @@ public class SampleWebModule : AbpModule
         ConfigureAutoApiControllers();
         // Swagger 設定
         ConfigureSwaggerServices(context.Services);
+
+        // 全域設定 上傳檔案 大小總限制
+        ConfigureUploadFileSizeLimit(context, configuration);
 
         // 設定Session Config
         ConfigureSession(context);
@@ -264,6 +268,22 @@ public class SampleWebModule : AbpModule
                 options.CustomSchemaIds(type => type.FullName);
             }
         );
+    }
+
+    /// <summary>
+    /// 全域設定 上傳檔案 大小總限制
+    /// </summary>
+    /// <param name="context"> 服務參數設定實體 </param>
+    /// <param name="configuration"> 服務參數設定 </param>
+    private void ConfigureUploadFileSizeLimit(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        context.Services.Configure<FormOptions>(x =>
+        {
+            // 全域設定 上傳檔案 大小總限制
+            x.MultipartBodyLengthLimit = configuration.GetSection("SystemParams").GetValue<long>("MultipartBodyLengthLimit");
+            // 避免IIS預設設定
+            x.ValueLengthLimit = int.MaxValue;
+        });
     }
 
     /// <summary>
