@@ -39,6 +39,7 @@ using Volo.Abp.UI.Navigation;
 using Volo.Abp.VirtualFileSystem;
 using System;
 using Volo.Abp.AspNetCore.Mvc.AntiForgery;
+using Microsoft.AspNetCore.Http;
 
 namespace Sample.Web;
 
@@ -128,6 +129,9 @@ public class SampleWebModule : AbpModule
         ConfigureAutoApiControllers();
         // Swagger 設定
         ConfigureSwaggerServices(context.Services);
+
+        // 設定Session Config
+        ConfigureSession(context);
     }
 
     #region 各種服務註冊
@@ -262,7 +266,24 @@ public class SampleWebModule : AbpModule
         );
     }
 
-    #endregion
+    /// <summary>
+    /// 設定Session Config
+    /// </summary>
+    /// <param name="context"> 服務參數設定實體 </param>
+    private void ConfigureSession(ServiceConfigurationContext context)
+    {
+        context.Services.AddDistributedMemoryCache();
+
+        context.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromSeconds(300);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
+    }
+
+    #endregion 各種服務註冊
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
