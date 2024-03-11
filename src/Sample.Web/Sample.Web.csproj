@@ -42,6 +42,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sample.Application\Sample.Application.csproj" />
+    <ProjectReference Include="..\Sample.HttpApi.Client\Sample.HttpApi.Client.csproj" />
     <ProjectReference Include="..\Sample.HttpApi\Sample.HttpApi.csproj" />
     <ProjectReference Include="..\Sample.EntityFrameworkCore\Sample.EntityFrameworkCore.csproj" />
     <PackageReference Include="Volo.Abp.Autofac" Version="7.4.2" />

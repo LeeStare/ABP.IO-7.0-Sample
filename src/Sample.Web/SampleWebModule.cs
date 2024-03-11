@@ -41,6 +41,8 @@ using System;
 using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Sample.Enum;
+using System.Net;
 
 namespace Sample.Web;
 
@@ -130,6 +132,9 @@ public class SampleWebModule : AbpModule
         ConfigureAutoApiControllers();
         // Swagger 設定
         ConfigureSwaggerServices(context.Services);
+
+        // 自訂錯誤處理(指定key值字串 對應 哪種狀態碼)
+        ConfigureExceptionHandler(context);
 
         // 全域設定 上傳檔案 大小總限制
         ConfigureUploadFileSizeLimit(context, configuration);
@@ -268,6 +273,19 @@ public class SampleWebModule : AbpModule
                 options.CustomSchemaIds(type => type.FullName);
             }
         );
+    }
+
+    /// <summary>
+    /// 自訂錯誤處理(指定key值字串 對應 哪種狀態碼)
+    /// </summary>
+    /// <param name="context"> 服務參數設定實體 </param>
+    private void ConfigureExceptionHandler(ServiceConfigurationContext context)
+    {
+        context.Services.Configure<Volo.Abp.AspNetCore.ExceptionHandling.AbpExceptionHttpStatusCodeOptions>(options =>
+        {
+            options.Map(AppErrorCodeList.NotModified.ToString(), HttpStatusCode.NotModified);
+            options.Map(AppErrorCodeList.InternalServerError.ToString(), HttpStatusCode.InternalServerError);
+        });
     }
 
     /// <summary>
