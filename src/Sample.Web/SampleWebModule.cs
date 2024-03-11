@@ -43,6 +43,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Sample.Enum;
 using System.Net;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 
 namespace Sample.Web;
 
@@ -131,7 +134,7 @@ public class SampleWebModule : AbpModule
         // API設定
         ConfigureAutoApiControllers();
         // Swagger 設定
-        ConfigureSwaggerServices(context.Services);
+        ConfigureSwaggerServices(context.Services, configuration);
 
         // 自訂錯誤處理(指定key值字串 對應 哪種狀態碼)
         ConfigureExceptionHandler(context);
@@ -247,6 +250,9 @@ public class SampleWebModule : AbpModule
         }
     }
 
+    /// <summary>
+    /// DNS對應
+    /// </summary>
     private void ConfigureNavigationServices()
     {
         Configure<AbpNavigationOptions>(options =>
@@ -255,6 +261,9 @@ public class SampleWebModule : AbpModule
         });
     }
 
+    /// <summary>
+    /// API設定
+    /// </summary>
     private void ConfigureAutoApiControllers()
     {
         Configure<AbpAspNetCoreMvcOptions>(options =>
@@ -263,14 +272,75 @@ public class SampleWebModule : AbpModule
         });
     }
 
-    private void ConfigureSwaggerServices(IServiceCollection services)
+    /// <summary>
+    /// Swagger設定
+    /// </summary>
+    private void ConfigureSwaggerServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAbpSwaggerGen(
+        services.AddAbpSwaggerGenWithOAuth(
+            // IConfigurations屬性
+            configuration.GetSection("AuthServer").GetValue<String>("Authority") ?? throw new Exception("查無swagger設定檔"),
+            new Dictionary<string, string>
+            {
+                {"Sample", "Sample Api"}
+            },
+            // 一般設定都在這邊
             options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Sample API", Version = "v1" });
+                // 新增summary說明
+                //1.locate the xml file being generated
+                //if you choose the default file path in the first step,
+                //the file name is SolutionName.xml
+                //the file path is the project path
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
+
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaipeiFishTradingSystem API", Version = "v1" });
                 options.DocInclusionPredicate((docName, description) => true);
                 options.CustomSchemaIds(type => type.FullName);
+                options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                options.AddSecurityDefinition(
+                OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
+                new OpenApiSecurityScheme()
+                {
+
+                    Type = SecuritySchemeType.OAuth2,
+                    Description = "Standard authorisation using the Bearer scheme. Example: \"bearer {token}\"",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Scheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
+                    OpenIdConnectUrl = new System.Uri(configuration["AuthServer:Authority"] + "/.well-known/openid-configuration"),
+                    BearerFormat = "JWT",
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        Password = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new System.Uri(configuration["AuthServer:Authority"] + "/connect/authorize"),
+                            Scopes = new Dictionary<string, string>
+                            {
+                                { "TaipeiFishTradingSystem", "TaipeiFishTradingSystem Api" }
+                            },
+                            TokenUrl = new System.Uri(configuration["AuthServer:Authority"] + "/connect/token")
+                        }
+                    }
+                });
+                options.AddSecurityRequirement(
+                    new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                    { Type = ReferenceType.SecurityScheme, Id = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme },
+                                 Scheme = "oauth2",
+                                 Name = "Bearer",
+                                 In = ParameterLocation.Header,
+                            },
+                             new string[] {}
+                        }
+                    }
+                );
             }
         );
     }
