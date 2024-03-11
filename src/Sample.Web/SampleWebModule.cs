@@ -1,4 +1,4 @@
-using System.IO;
+ï»¿using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
@@ -87,7 +87,7 @@ public class SampleWebModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
-        // ³]©wCors¬Fµ¦
+        // è¨­å®šCorsæ”¿ç­–
         context.Services.AddCors(cors => cors.AddPolicy("default", policy =>
         {
             if (hostingEnvironment.IsDevelopment() || hostingEnvironment.EnvironmentName.Equals("HamaDevelpment"))
@@ -102,28 +102,38 @@ public class SampleWebModule : AbpModule
                 var setUrl = configuration.GetSection("App").GetValue<string>("SelfUrl") ?? string.Empty;
                 policy.
                    WithOrigins(setUrl,
-                     "http://localhost:4200", "https://localhost:44315", (configuration["App:RedirectUrl"] ?? "https://tpfishdev.hamastar.com.tw/")).
+                     "http://localhost:4200", "https://localhost:44391", (configuration["App:RedirectUrl"] ?? "https://sample.hamastar.com.tw/")).
                    AllowAnyHeader().
                    AllowAnyMethod();
             }
         }));
-        // ÅçÃÒ¡G¨¾°°ÅçÃÒ
+        // é©—è­‰ï¼šé˜²å½é©—è­‰
         ConfigureAntiForgery();
-        // ÅçÃÒ¡GJWTÅçÃÒ¾÷¨î
+        // é©—è­‰ï¼šJWTé©—è­‰æ©Ÿåˆ¶
         ConfigureAuthentication(context);
+        // è¨­å®šDomain
         ConfigureUrls(configuration);
+        // è¨­å®š Globalæ¨£å¼
         ConfigureBundles();
+        // AutoMapper è‡ªå‹•å°ç…§(æ˜ å°„)
         ConfigureAutoMapper();
+        // è¨­å®šè™›æ“¬ç›®éŒ„
         ConfigureVirtualFileSystem(hostingEnvironment);
+        // å¤šèªç³»è¨­è¨ˆ
+        ConfigureLocalizationServices();
+
+        // DNSå°æ‡‰
         ConfigureNavigationServices();
+        // APIè¨­å®š
         ConfigureAutoApiControllers();
+        // Swagger è¨­å®š
         ConfigureSwaggerServices(context.Services);
     }
 
-    #region ¦UºØªA°Èµù¥U
+    #region å„ç¨®æœå‹™è¨»å†Š
 
     /// <summary>
-    /// ÅçÃÒ¡G¨¾°°ÅçÃÒ
+    /// é©—è­‰ï¼šé˜²å½é©—è­‰
     /// </summary>
     private void ConfigureAntiForgery()
     {
@@ -137,11 +147,11 @@ public class SampleWebModule : AbpModule
             /*options.AutoValidateIgnoredHttpMethods.Add("GET");
             options.AutoValidateIgnoredHttpMethods.Add("POST");
             options.TokenCookie.Expiration = TimeSpan.FromDays(365);
-            // ¨¾°°½Ğ¨D¦WºÙ
+            // é˜²å½è«‹æ±‚åç¨±
             options.AuthCookieSchemaName = "Requestverificationtoken";
-            // ¨¾°°½Ğ¨D¦WºÙCookie¦WºÙ
+            // é˜²å½è«‹æ±‚åç¨±Cookieåç¨±
             options.TokenCookie.Name = "XSRF-TOKEN";
-            // Cookieªº¦w¥şµ¦²¤
+            // Cookieçš„å®‰å…¨ç­–ç•¥
             options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
             options.TokenCookie.HttpOnly = false;*/
         });
@@ -179,6 +189,33 @@ public class SampleWebModule : AbpModule
         Configure<AbpAutoMapperOptions>(options =>
         {
             options.AddMaps<SampleWebModule>();
+        });
+    }
+
+    /// <summary>
+    /// å¤šèªç³»è¨­è¨ˆ
+    /// </summary>
+    private void ConfigureLocalizationServices()
+    {
+        Configure<AbpLocalizationOptions>(options =>
+        {
+            options.Languages.Add(new LanguageInfo("ar", "ar", "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©"));
+            options.Languages.Add(new LanguageInfo("cs", "cs", "ÄŒeÅ¡tina"));
+            options.Languages.Add(new LanguageInfo("en", "en", "English"));
+            options.Languages.Add(new LanguageInfo("en-GB", "en-GB", "English (UK)"));
+            options.Languages.Add(new LanguageInfo("hu", "hu", "Magyar"));
+            options.Languages.Add(new LanguageInfo("fi", "fi", "Finnish"));
+            options.Languages.Add(new LanguageInfo("fr", "fr", "FranÃ§ais"));
+            options.Languages.Add(new LanguageInfo("hi", "hi", "Hindi", "in"));
+            options.Languages.Add(new LanguageInfo("it", "it", "Italian", "it"));
+            options.Languages.Add(new LanguageInfo("pt-BR", "pt-BR", "PortuguÃªs"));
+            options.Languages.Add(new LanguageInfo("ru", "ru", "Ğ ÑƒÑÑĞºĞ¸Ğ¹"));
+            options.Languages.Add(new LanguageInfo("sk", "sk", "Slovak"));
+            options.Languages.Add(new LanguageInfo("tr", "tr", "TÃ¼rkÃ§e"));
+            options.Languages.Add(new LanguageInfo("zh-Hans", "zh-Hans", "ç®€ä½“ä¸­æ–‡"));
+            options.Languages.Add(new LanguageInfo("zh-Hant", "zh-Hant", "ç¹é«”ä¸­æ–‡"));
+            options.Languages.Add(new LanguageInfo("de-DE", "de-DE", "Deutsch", "de"));
+            options.Languages.Add(new LanguageInfo("es", "es", "EspaÃ±ol"));
         });
     }
 
