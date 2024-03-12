@@ -51,6 +51,7 @@ using Volo.Abp.BackgroundJobs.Quartz;
 using Volo.Abp.BackgroundWorkers.Quartz;
 using Quartz;
 using Sample.Web.Quartz;
+using Volo.Abp.OpenIddict.Tokens;
 
 namespace Sample.Web;
 
@@ -125,6 +126,12 @@ public class SampleWebModule : AbpModule
         ConfigureAntiForgery();
         // 驗證：JWT驗證機制
         ConfigureAuthentication(context);
+        // Opiddict令牌設置
+        ConfigureTokenCleanupOptions();
+        // 驗證：異地登入後令牌授權登出
+        ConfigureSecurityStampValidatorOptions(context);
+        // 驗證：定時登出
+        ConfigureApplicationCookieOptions(context);
         // 設定Domain
         ConfigureUrls(configuration);
         // Quartz
@@ -184,24 +191,51 @@ public class SampleWebModule : AbpModule
         });
     }
 
+    /// <summary>
+    /// 驗證：JWT驗證機制
+    /// </summary>
     private void ConfigureAuthentication(ServiceConfigurationContext context)
     {
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
     }
 
     /// <summary>
-    /// 重設身分驗證機制-降低密碼安全度
+    /// 驗證：自動刪除令牌/授權
     /// </summary>
-    private void ConfigureIdentityOptions()
+    private void ConfigureTokenCleanupOptions()
     {
-        Configure<IdentityOptions>(options =>
+        Configure<TokenCleanupOptions>(options =>
         {
-            // 配置密碼策略
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 4;
+            options.IsCleanupEnabled = true; //啟用/禁用令牌清理
+            options.CleanupPeriod = 3600000; //設置清理週期
+            //必須修剪設置最短存留期授權。（預設值：14 天）不能少於 10 分鐘。
+            options.MinimumAuthorizationLifespan = TimeSpan.FromDays(7);
+            //必須修剪設置令牌的最短生命週期。（預設值：14 天）不能少於 10 分鐘。
+            options.MinimumTokenLifespan = TimeSpan.FromDays(7);
+        });
+    }
+
+    /// <summary>
+    /// 驗證：異地登入後令牌授權登出
+    /// </summary>
+    private void ConfigureSecurityStampValidatorOptions(ServiceConfigurationContext context)
+    {
+        context.Services.Configure<SecurityStampValidatorOptions>(options =>
+        {
+            // enables immediate logout, after updating the user's stat.
+            options.ValidationInterval = TimeSpan.Zero;
+        });
+    }
+
+    /// <summary>
+    /// 驗證：定時登出
+    /// </summary>
+    private void ConfigureApplicationCookieOptions(ServiceConfigurationContext context)
+    {
+        context.Services.ConfigureApplicationCookie(options =>
+        {
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // 設定Cookie的過期時間
+            options.SlidingExpiration = true; // 啟用滑動過期，使得在每次使用者發送請求時重置過期時間
         });
     }
 
@@ -229,6 +263,22 @@ public class SampleWebModule : AbpModule
         {
             options.RetryCount = 1;
             options.RetryIntervalMillisecond = 1000;
+        });
+    }
+
+    /// <summary>
+    /// 重設身分驗證機制-降低密碼安全度
+    /// </summary>
+    private void ConfigureIdentityOptions()
+    {
+        Configure<IdentityOptions>(options =>
+        {
+            // 配置密碼策略
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 4;
         });
     }
 
