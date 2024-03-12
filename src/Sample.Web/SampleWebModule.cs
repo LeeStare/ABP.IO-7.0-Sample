@@ -186,6 +186,9 @@ public class SampleWebModule : AbpModule
         });
     }
 
+    /// <summary>
+    /// 設定 Global樣式
+    /// </summary>
     private void ConfigureBundles()
     {
         Configure<AbpBundlingOptions>(options =>
@@ -200,12 +203,33 @@ public class SampleWebModule : AbpModule
         });
     }
 
+    /// <summary>
+    /// AutoMapper 自動對照(映射)
+    /// </summary>
     private void ConfigureAutoMapper()
     {
         Configure<AbpAutoMapperOptions>(options =>
         {
             options.AddMaps<SampleWebModule>();
         });
+    }
+
+    /// <summary>
+    /// 設定虛擬目錄：自訂虛擬目錄(記得要自己新增資料夾)
+    /// </summary>
+    private void ConfigureVirtualFileSystem(IWebHostEnvironment hostingEnvironment)
+    {
+        if (hostingEnvironment.IsDevelopment())
+        {
+            Configure<AbpVirtualFileSystemOptions>(options =>
+            {
+                options.FileSets.ReplaceEmbeddedByPhysical<SampleDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Domain.Shared"));
+                options.FileSets.ReplaceEmbeddedByPhysical<SampleDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Domain"));
+                options.FileSets.ReplaceEmbeddedByPhysical<SampleApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Application.Contracts"));
+                options.FileSets.ReplaceEmbeddedByPhysical<SampleApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Application"));
+                options.FileSets.ReplaceEmbeddedByPhysical<SampleWebModule>(hostingEnvironment.ContentRootPath);
+            });
+        }
     }
 
     /// <summary>
@@ -233,21 +257,6 @@ public class SampleWebModule : AbpModule
             options.Languages.Add(new LanguageInfo("de-DE", "de-DE", "Deutsch", "de"));
             options.Languages.Add(new LanguageInfo("es", "es", "Español"));
         });
-    }
-
-    private void ConfigureVirtualFileSystem(IWebHostEnvironment hostingEnvironment)
-    {
-        if (hostingEnvironment.IsDevelopment())
-        {
-            Configure<AbpVirtualFileSystemOptions>(options =>
-            {
-                options.FileSets.ReplaceEmbeddedByPhysical<SampleDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Domain.Shared"));
-                options.FileSets.ReplaceEmbeddedByPhysical<SampleDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Domain"));
-                options.FileSets.ReplaceEmbeddedByPhysical<SampleApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Application.Contracts"));
-                options.FileSets.ReplaceEmbeddedByPhysical<SampleApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Sample.Application"));
-                options.FileSets.ReplaceEmbeddedByPhysical<SampleWebModule>(hostingEnvironment.ContentRootPath);
-            });
-        }
     }
 
     /// <summary>
