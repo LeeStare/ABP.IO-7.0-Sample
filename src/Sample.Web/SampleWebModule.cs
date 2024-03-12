@@ -47,6 +47,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
+using Volo.Abp.BackgroundJobs.Quartz;
+using Volo.Abp.BackgroundWorkers.Quartz;
+using Quartz;
+using Sample.Web.Quartz;
 
 namespace Sample.Web;
 
@@ -61,7 +65,9 @@ namespace Sample.Web;
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(AbpTenantManagementWebModule),
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(AbpSwashbuckleModule)
+    typeof(AbpSwashbuckleModule),
+    typeof(AbpBackgroundWorkersQuartzModule),
+    typeof(AbpBackgroundJobsQuartzModule)
     )]
 public class SampleWebModule : AbpModule
 {
@@ -121,6 +127,8 @@ public class SampleWebModule : AbpModule
         ConfigureAuthentication(context);
         // 設定Domain
         ConfigureUrls(configuration);
+        // Quartz
+        ConfigureQuartzOptions(context);
         // 重設身分驗證機制-降低密碼安全度
         ConfigureIdentityOptions();
         // 設定 Global樣式
@@ -205,6 +213,22 @@ public class SampleWebModule : AbpModule
         Configure<AppUrlOptions>(options =>
         {
             options.Applications["MVC"].RootUrl = configuration["App:SelfUrl"];
+        });
+    }
+
+    /// <summary>
+    /// 設定排程器
+    /// </summary>
+    /// <param name="context"></param>
+    public void ConfigureQuartzOptions(ServiceConfigurationContext context)
+    {
+
+        context.Services.AddTransient<IJob, QuartzSample>();
+
+        Configure<AbpBackgroundJobQuartzOptions>(options =>
+        {
+            options.RetryCount = 1;
+            options.RetryIntervalMillisecond = 1000;
         });
     }
 
