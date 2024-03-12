@@ -46,6 +46,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using Microsoft.AspNetCore.Identity;
 
 namespace Sample.Web;
 
@@ -120,6 +121,8 @@ public class SampleWebModule : AbpModule
         ConfigureAuthentication(context);
         // 設定Domain
         ConfigureUrls(configuration);
+        // 重設身分驗證機制-降低密碼安全度
+        ConfigureIdentityOptions();
         // 設定 Global樣式
         ConfigureBundles();
         // AutoMapper 自動對照(映射)
@@ -178,6 +181,25 @@ public class SampleWebModule : AbpModule
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
     }
 
+    /// <summary>
+    /// 重設身分驗證機制-降低密碼安全度
+    /// </summary>
+    private void ConfigureIdentityOptions()
+    {
+        Configure<IdentityOptions>(options =>
+        {
+            // 配置密碼策略
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 4;
+        });
+    }
+
+    /// <summary>
+    /// 設定Domain
+    /// </summary>
     private void ConfigureUrls(IConfiguration configuration)
     {
         Configure<AppUrlOptions>(options =>
