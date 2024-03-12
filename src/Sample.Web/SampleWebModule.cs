@@ -86,6 +86,15 @@ public class SampleWebModule : AbpModule
             );
         });
 
+        // 設置Token保存時間
+        PreConfigure<OpenIddictServerBuilder>(builder =>
+        {
+            builder.SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(30));
+            builder.SetAccessTokenLifetime(TimeSpan.FromMinutes(30));
+            builder.SetIdentityTokenLifetime(TimeSpan.FromMinutes(30));
+            builder.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+        });
+
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
