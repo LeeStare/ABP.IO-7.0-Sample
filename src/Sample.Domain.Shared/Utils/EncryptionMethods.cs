@@ -5,7 +5,7 @@
 // <author>LeeStar</author>
 //-----------------------------------------------------------------------
 
-namespace TaipeiFishTradingSystem.Utils
+namespace Sample.Utils
 {
     using System;
     using System.IO;
