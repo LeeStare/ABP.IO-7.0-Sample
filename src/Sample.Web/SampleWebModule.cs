@@ -408,10 +408,10 @@ public class SampleWebModule : AbpModule
                 //1.locate the xml file being generated
                 //if you choose the default file path in the first step,
                 //the file name is SolutionName.xml
-                //the file path is the project path
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                options.IncludeXmlComments(xmlPath);
+                ////the file path is the project path
+                //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                //options.IncludeXmlComments(xmlPath);
 
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaipeiFishTradingSystem API", Version = "v1" });
                 options.DocInclusionPredicate((docName, description) => true);
