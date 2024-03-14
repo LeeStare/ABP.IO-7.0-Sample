@@ -16,10 +16,10 @@ namespace Sample.Repositories;
 /// <summary>
 /// 泛型化資料庫
 /// </summary>
-public class TFTSDbContextBase<TEntity, TPrimaryKey> : EfCoreRepository<SampleDbContext, TEntity, TPrimaryKey>
+public class SampleDbContextBase<TEntity, TPrimaryKey> : EfCoreRepository<SampleDbContext, TEntity, TPrimaryKey>
     where TEntity : class, IEntity<TPrimaryKey>
 {
-    protected TFTSDbContextBase(IDbContextProvider<SampleDbContext> dbContextProvider)
+    protected SampleDbContextBase(IDbContextProvider<SampleDbContext> dbContextProvider)
             : base(dbContextProvider)
     {
     }
