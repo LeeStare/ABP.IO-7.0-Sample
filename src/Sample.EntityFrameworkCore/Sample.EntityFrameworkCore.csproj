@@ -9,7 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sample.Application.Contracts\Sample.Application.Contracts.csproj" />
     <ProjectReference Include="..\Sample.Domain\Sample.Domain.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="7.0.0" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Volo.Abp.EntityFrameworkCore.SqlServer" Version="7.4.2" />
     <PackageReference Include="Volo.Abp.PermissionManagement.EntityFrameworkCore" Version="7.4.2" />
     <PackageReference Include="Volo.Abp.SettingManagement.EntityFrameworkCore" Version="7.4.2" />
