@@ -103,6 +103,8 @@ public class SampleWebModule : AbpModule
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
+            // 禁用HTTPS 在開發測試環境
+            // builder.AddServer(options => { options.UseAspNetCore().DisableTransportSecurityRequirement(); });
         });
     }
 
@@ -131,6 +133,7 @@ public class SampleWebModule : AbpModule
                    AllowAnyMethod();
             }
         }));
+
         // 驗證：防偽驗證
         ConfigureAntiForgery();
         // 驗證：JWT驗證機制
